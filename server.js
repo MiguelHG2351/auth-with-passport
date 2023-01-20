@@ -3,18 +3,18 @@ const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
 const logger = require('morgan')
-
-const routes = require("./router/index.routes");
 const path = require("path");
+require("dotenv").config();
+
 const mongoDBInit = require("./database/mongo");
+const routes = require("./router/index.routes");
+
+// if (process.env.NODE_ENV !== "production") {
+// }
 
 const app = express();
 
 mongoDBInit();
-
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
 
 app.use(logger('dev'));
 app.use(express.json());

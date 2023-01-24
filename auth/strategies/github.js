@@ -11,6 +11,9 @@ passport.use(
     },
     function (req, accessToken, refreshToken, profile, done) {
       console.log(accessToken, refreshToken, profile);
+      console.log(profile)
+      console.log(accessToken)
+      console.log(refreshToken)
       done(null, profile._json);
     }
   )

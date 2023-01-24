@@ -1,17 +1,15 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth2");
 
-// console.log(process.env["GOOGLE_CLIENT_ID"])
-// console.log(process.env.GOOGLE_CLIENT_SECRET)
-passport.serializeUser(function(user, done) {
-  console.log('serializeUser user')
-  done(null, user);
-});
+// passport.serializeUser(function(user, done) {
+//   console.log('serializeUser user')
+//   done(null, user);
+// });
 
-passport.deserializeUser(function(user, done) {
-  console.log('deserializeUser user')
-  done(null, user);
-});
+// passport.deserializeUser(function(user, done) {
+//   console.log('deserializeUser user')
+//   done(null, user);
+// });
 
 passport.use(
   new GoogleStrategy(

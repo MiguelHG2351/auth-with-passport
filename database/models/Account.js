@@ -1,12 +1,15 @@
 const { Schema, model } = require("mongoose");
 
 const AccountSchema = new Schema({
-  userId: String,
+  userId: {
+    type: String,
+    required: true
+  },
   provider: {
     type: String,
     enum: ["google", "facebook", "github"],
+    required: true
   },
-  scope: String,
   session_state: { // If account is enable
     type: String,
     required: true,
@@ -14,5 +17,10 @@ const AccountSchema = new Schema({
       'enable',
       'disable'
     ]
+  },
+  user: {
+    type: Schema.Types.ObjectId, ref: 'User'
   }
 });
+
+module.exports = model('account', AccountSchema)

@@ -6,14 +6,17 @@ const UserSchema = new Schema({
     required: true,
     trim: true
   },
+  username: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true
+  },
   email: {
     type: String,
     required: true,
-    trim: true
-  },
-  emailVerified: {
-    required: true,
-    type: Date,
+    trim: true,
+    unique: true
   },
   image: {
     type: String,

@@ -1,11 +1,21 @@
-const UserModel = require('../models/User')
+const UserModel = require("../database/models/User");
 
 class UserServices {
-  
-  createUser(data) {
-    const user = new UserModel(data)
-    return user.save()
+  async createUser({ username, name, email, image }) {
+    const user = new UserModel({
+      username,
+      name,
+      email,
+      image,
+    });
+    return await user.save();
+  }
+  async findUser({ username }) {
+    const user = await UserModel.findOne({
+      username
+    })
+    return user
   }
 }
 
-module.exports = UserServices
+module.exports = UserServices;

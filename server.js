@@ -4,13 +4,11 @@ const passport = require("passport");
 const session = require("express-session");
 const logger = require('morgan')
 const path = require("path");
+const boom = require('@hapi/boom')
 require("dotenv").config();
 
 const mongoDBInit = require("./database/mongo");
 const routes = require("./router/index.routes");
-
-// if (process.env.NODE_ENV !== "production") {
-// }
 
 const app = express();
 
@@ -38,6 +36,11 @@ routes(app);
 
 app.get("/", (req, res) => {
   res.send("Hello world");
+});
+
+app.get("/ban", (req, res) => {
+  const { output: { statusCode, payload } } = boom.unauthorized('Ups')
+  res.status(statusCode).send(payload)
 });
 
 module.exports = app;

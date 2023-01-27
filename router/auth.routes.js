@@ -11,7 +11,8 @@ const validateSchema = require("../utils/middleware/validateSchema");
 require("../auth/strategies/index");
 
 const userModel = new UserServices();
-const FIFTEEN_MINUTES_IN_MILLISECONDS = () => new Date(Date.now() + (60*1000*15));
+const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
+  new Date(Date.now() + 60 * 1000 * 15);
 
 router.get("/login", (req, res) => {
   res.send("Hello world");
@@ -39,29 +40,35 @@ router.get(
   }),
   validateSchema(createUserDto, "user"),
   async (req, res) => {
-    const { username, name, email, image } = req.user;
-    let getUser = await userModel.findUser({ username })
-    // TODO: Make this :D user exist in database
-    console.log(getUser)
-    if (!getUser) {
-      getUser = await userModel.createUser({
+    try {
+      const { username, name, email, image } = req.user;
+      let getUser = await userModel.findUser({ username }, { lean: true });
+      // TODO: Make this :D user exist in database
+      console.log(getUser);
+      if (!getUser) {
+        getUser = await userModel.createUser({
           username,
           name,
           email,
           image,
-      });
-    }
-      console.log(user);
+        });
+      }
+      console.log('GET USER');
+      console.log(getUser);
 
-      const generateToken = await signJWT(username, user.id);
+      const generateToken = await signJWT(username, getUser._id);
 
       res.cookie("token_auth", generateToken, {
         httpOnly: true,
         expires: FIFTEEN_MINUTES_IN_MILLISECONDS(),
-        secure: true
+        secure: true,
       });
       console.log(req.user);
-      res.redirect("/");
+      res.redirect("/client");
+    } catch(err) {
+      console.error(err)
+      res.redirect("/client");
+    }
   }
 );
 

@@ -5,7 +5,7 @@ const alg = "HS256";
 
 const signJWT = async (username, userId) => {
   if (!username || !userId) {
-    throw new Error('username or userId is not defined')
+    return Promise.reject('username or userId is not defined')
   }
 
   try {
@@ -22,7 +22,7 @@ const signJWT = async (username, userId) => {
   
     return jwt
   } catch (err) {
-    Promise.reject(err)
+    return Promise.reject(err)
   }
 };
 
@@ -34,7 +34,7 @@ const verifyClientToken = async (token) => {
     })
     return Promise.resolve(payload)
   } catch (err) {
-    Promise.reject(err)
+    return Promise.reject(err)
   }
 }
 

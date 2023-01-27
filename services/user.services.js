@@ -10,11 +10,15 @@ class UserServices {
     });
     return await user.save();
   }
-  async findUser({ username }) {
-    const user = await UserModel.findOne({
-      username
-    })
-    return user
+  async findUser({ username }, { lean = false }) {
+    if (lean) {
+      return await UserModel.findOne({
+        username,
+      }).lean();
+    }
+    return await UserModel.findOne({
+      username,
+    });
   }
 }
 

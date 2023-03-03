@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Express • TodoMVC</title>
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="stylesheet" href="/css/home.css" />
+    <style>
+      label {
+        display: block;
+      }
+
+      label ~ label {
+        margin-top: 1rem;
+      }
+
+      button {
+        display: block;
+        background-color: #0099ff;
+        border-radius: .5rem;
+        color: black;
+        padding: .5rem 1rem;
+        margin-top: 1rem;
+        font-weight: bold;
+        box-shadow: 0 0 14px 4px rgba(0, 0, 0, .5);
+      }
+    </style>
+  </head>
+  <body>
+    <form action="/auth/local" method="post">
+      <label for="username">Type your username</label>
+      <input type="text" name="username" id="username" />
+
+      <label for="name">Type your name</label>
+      <input type="text" name="name" id="name" />
+
+      <label for="email">Type your email</label>
+      <input type="email" name="email" id="email" />
+
+      <label for="file">Select your profile image</label>
+      <input type="file" name="image" id="image" accept="image/png,image/bmp,image/jpeg,image/webp,image/avif" />
+
+      <label for="password">Type your sucure password</label>
+      <input type="password" name="password" id="password" />
+
+      <button type="submit">Enviar datos :D</button>
+    </form>
+  </body>
+</html>

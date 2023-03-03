@@ -16,7 +16,7 @@ const signJWT = async (username, userId) => {
     .setSubject(userId)
     .setExpirationTime('15min')
     .setAudience('urn:chat-app:client')
-    .setIssuer('urn:platzi:issuer')
+    .setIssuer('urn:chat-app:issuer')
     .setIssuedAt()
     .sign(JWT_SECRET)
   

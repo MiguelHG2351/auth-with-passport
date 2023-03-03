@@ -11,3 +11,4 @@
 
 require("./google");
 require("./github");
+require("./local");

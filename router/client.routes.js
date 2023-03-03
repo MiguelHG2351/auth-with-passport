@@ -3,7 +3,7 @@ const router = Router()
 
 router.get('/', (req, res) => {
     console.log('Cookies')
-    console.log(req.signedCookies)
+    console.log(req.cookies)
     
     res.render('home')
 })

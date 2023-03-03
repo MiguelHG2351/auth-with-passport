@@ -11,7 +11,7 @@ passport.use(
       passReqToCallback: true,
     },
     function (req, accessToken, refreshToken, profile, done) {
-      console.log(profile)
+      // console.log(profile)
       axios.get('https://api.github.com/user/emails', {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -21,7 +21,7 @@ passport.use(
         }
       }).then(data => {
         const email = data.data.find(email => email.primary)
-        console.log('Get data')
+        // console.log('Get data')
         // console.log(data)
         done(null, {
           profile: profile._json,

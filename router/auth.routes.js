@@ -3,7 +3,7 @@ const router = Router();
 const passport = require("passport");
 const UserServices = require("../services/user.services");
 const { createUserDto } = require("../dtos/user.dtos");
-const { badRequest } = require("../utils/errors");
+// const { badRequest } = require("../utils/errors");
 
 const { signJWT } = require("../utils");
 const validateSchema = require("../utils/middleware/validateSchema");
@@ -32,6 +32,21 @@ router.get(
   })
 );
 
+router.post(
+  "/local",
+  passport.authenticate("local", { session: false, failureRedirect: "/login" }),
+  // validateSchema(createUserDto, "user"),
+  (req, res) => {
+    console.log("user");
+    console.log(req.user);
+    res.redirect("/client");
+  }
+);
+
+router.get("/local", (req, res) => {
+  res.render("login");
+});
+
 router.get(
   "/google/callback",
   passport.authenticate("google", {
@@ -41,9 +56,10 @@ router.get(
   validateSchema(createUserDto, "user"),
   async (req, res) => {
     try {
-      const { username, name, email, image } = req.user;
+      const { username, name, email, image, provider } = req.user;
       let getUser = await userModel.findUser({ username }, { lean: true });
-      // TODO: Make this :D user exist in database
+      console.log("google callback");
+      console.log(provider);
       console.log(getUser);
       if (!getUser) {
         getUser = await userModel.createUser({
@@ -51,9 +67,10 @@ router.get(
           name,
           email,
           image,
+          provider,
         });
       }
-      console.log('GET USER');
+      console.log("GET USER");
       console.log(getUser);
 
       const generateToken = await signJWT(username, getUser._id);
@@ -65,8 +82,8 @@ router.get(
       });
       console.log(req.user);
       res.redirect("/client");
-    } catch(err) {
-      console.error(err)
+    } catch (err) {
+      console.error(err);
       res.redirect("/client");
     }
   }
@@ -82,7 +99,7 @@ router.get(
   (req, res) => {
     console.log("user");
     // console.log(req.user);
-    res.redirect("/cleint");
+    res.redirect("/client");
   }
 );
 
@@ -96,8 +113,6 @@ router.get(
 // });
 
 router.get("/github/success", (req, res) => {
-  // console.log("Session::::");
-  // console.log(req.session.passport);
   res.json({
     hello: "World",
   });

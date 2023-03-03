@@ -1,12 +1,13 @@
 const UserModel = require("../database/models/User");
 
 class UserServices {
-  async createUser({ username, name, email, image }) {
+  async createUser({ username, name, email, image, provider }) {
     const user = new UserModel({
       username,
       name,
       email,
       image,
+      provider
     });
     return await user.save();
   }

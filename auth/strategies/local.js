@@ -19,17 +19,32 @@ function init(passport) {
 
         try {
           const user = await User.findOne({ username: username });
+          if (!user) {
+            return done(null, false, {
+              message: "Incorrect username or password.",
+            });
+          }
+          console.log('Before compare password')
+          console.log(typeof user.verifyPassword)
+          if (!user.verifyPassword(password)) {
+            console.log('inside compare password')
+            return done(null, false, {
+              message: "Incorrect username or password.",
+            });
+          }
+          console.log('After compare password')
+
           const beforeSessions = await Session.countDocuments({
             userId: user._id,
           });
-
           if (beforeSessions > 4) {
             console.log("Error1 is:");
             return done(null, false, {
-              description:
+              message:
                 "You have many sessions, please logout from other devices",
             });
           }
+
           const session = await Session.create({
             isValid: true,
             userId: user._id,
@@ -38,17 +53,6 @@ function init(passport) {
             version: device.version,
             ip: req.socket.remoteAddress,
           });
-
-          if (!user) {
-            return done({ error: "xd1" }, false, {
-              description: "Incorrect username or password.",
-            });
-          }
-          if (!user.verifyPassword(password)) {
-            return done({ error: "xd2" }, false, {
-              description: "Incorrect username or password.",
-            });
-          }
           return done(null, {
             accessToken: await user.generateAccessToken({
               username: user.username,
@@ -61,9 +65,7 @@ function init(passport) {
         } catch (err) {
           console.log("Error is:");
           console.log(err);
-          return done(err, false, {
-            description: "Something went wrong, please try again later",
-          });
+          return done(err);
         }
       }
     )

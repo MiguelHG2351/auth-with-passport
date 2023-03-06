@@ -17,32 +17,41 @@ router.get("/login", (req, res) => {
 });
 
 // #region local
-router.post(
-  "/local",
-  passport.authenticate("local", {
-    session: false,
-    failureRedirect: "/auth/error",
-    failureMessage: true
-  }),
-  // validateSchema(createUserDto, "user"),
-  (req, res) => {
+router.post("/local", (req, res, next) => {
+  passport.authenticate("local", (err, user, options) => {
+    // Haber, si error no es nulo quiere decir que entro al catch de la funcion
+    // Si user es nulo quiere decir que no encontro el usuario
+    // Si options no es nulo quiere decir que ocurrio lo siguiente:
+    // 1. El usuario no existe
+    // 2. La contraseña es incorrecta
+    // 3. El usuario tiene mas de 3 sesiones activas
+    console.log("This option:");
+    console.log(options);
+    console.log("This error:");
+    console.log(err);
+    console.log("This user:");
+    console.log(user);
+    if(err) return res.json(err);
+    if (!user) return res.json({message: options.message});
+    // console.log(req.body);
+    // res.end("bla bla");
     res.cookie("access_token", req.user.accessToken);
     res.cookie("refresh_token", req.user.refreshToken);
     res.redirect("/client");
-  }
-);
+  })(req, res, next);
+});
 
 router.get("/error", (req, res, next) => {
   passport.authenticate("local", function (err, ...data) {
-    console.log(err, data)
-    if(err) {
+    console.log(err, data);
+    if (err) {
       res.json({
-        user: 'Error too many sessions'
+        user: "Error too many sessions",
       });
-      return 
+      return;
     }
     res.json({
-      data
+      data,
     });
   })(req, res, next);
 });

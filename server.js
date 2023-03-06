@@ -23,8 +23,9 @@ app.use(express.static("public"));
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+require("./auth/strategies/index")(passport);
 app.use(
   session({
     secret: process.env.COOKIE_SECRET,
@@ -51,6 +52,14 @@ app.get("/test", (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Hello world!");
+});
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  res.status(404).json({
+    message: "Not found",
+  })
+
 });
 
 module.exports = app;

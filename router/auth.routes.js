@@ -8,8 +8,6 @@ const { createUserDto } = require("../dtos/user.dtos");
 const { signJWT } = require("../utils");
 const validateSchema = require("../utils/middleware/validateSchema");
 
-require("../auth/strategies/index");
-
 const userModel = new UserServices();
 const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
   new Date(Date.now() + 60 * 1000 * 15);
@@ -18,34 +16,49 @@ router.get("/login", (req, res) => {
   res.send("Hello world");
 });
 
+// #region local
+router.post(
+  "/local",
+  passport.authenticate("local", {
+    session: false,
+    failureRedirect: "/auth/error",
+    failureMessage: true
+  }),
+  // validateSchema(createUserDto, "user"),
+  (req, res) => {
+    res.cookie("access_token", req.user.accessToken);
+    res.cookie("refresh_token", req.user.refreshToken);
+    res.redirect("/client");
+  }
+);
+
+router.get("/error", (req, res, next) => {
+  passport.authenticate("local", function (err, ...data) {
+    console.log(err, data)
+    if(err) {
+      res.json({
+        user: 'Error too many sessions'
+      });
+      return 
+    }
+    res.json({
+      data
+    });
+  })(req, res, next);
+});
+
+router.get("/local", (req, res) => {
+  res.render("login");
+});
+// #endregion
+
+// #region google
 router.get(
   "/google",
   passport.authenticate("google", {
     scope: ["email", "profile"],
   })
 );
-
-router.get(
-  "/github",
-  passport.authenticate("github", {
-    scope: ["user:email"],
-  })
-);
-
-router.post(
-  "/local",
-  passport.authenticate("local", { session: false, failureRedirect: "/login" }),
-  // validateSchema(createUserDto, "user"),
-  (req, res) => {
-    console.log("user");
-    console.log(req.user);
-    res.redirect("/client");
-  }
-);
-
-router.get("/local", (req, res) => {
-  res.render("login");
-});
 
 router.get(
   "/google/callback",
@@ -58,9 +71,6 @@ router.get(
     try {
       const { username, name, email, image, provider } = req.user;
       let getUser = await userModel.findUser({ username }, { lean: true });
-      console.log("google callback");
-      console.log(provider);
-      console.log(getUser);
       if (!getUser) {
         getUser = await userModel.createUser({
           username,
@@ -70,8 +80,6 @@ router.get(
           provider,
         });
       }
-      console.log("GET USER");
-      console.log(getUser);
 
       const generateToken = await signJWT(username, getUser._id);
 
@@ -80,13 +88,21 @@ router.get(
         expires: FIFTEEN_MINUTES_IN_MILLISECONDS(),
         secure: true,
       });
-      console.log(req.user);
       res.redirect("/client");
     } catch (err) {
       console.error(err);
       res.redirect("/client");
     }
   }
+);
+// #endregion
+
+// #region github
+router.get(
+  "/github",
+  passport.authenticate("github", {
+    scope: ["user:email"],
+  })
 );
 
 router.get(
@@ -97,11 +113,17 @@ router.get(
     session: false,
   }),
   (req, res) => {
-    console.log("user");
     // console.log(req.user);
     res.redirect("/client");
   }
 );
+
+router.get("/github/success", (req, res) => {
+  res.json({
+    hello: "World",
+  });
+});
+// #endregion
 
 // Esta ruta puede ser una donde ingresen los campos faltantes
 // que google, facebook u otro proveedor no proporciona :D
@@ -111,12 +133,6 @@ router.get(
 //     hello: "World",
 //   });
 // });
-
-router.get("/github/success", (req, res) => {
-  res.json({
-    hello: "World",
-  });
-});
 
 router.get("/logout", (req, res, next) => {
   req.logout((err) => {

@@ -2,7 +2,10 @@ const jose = require("jose");
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_TOKEN);
 const JWT_REFRESH_TOKEN = new TextEncoder().encode(process.env.JWT_REFRESH_TOKEN);
-const alg = "HS256";
+const JWT_HEADER = {
+  alg: "HS256",
+  typ: "JWT",
+}
 
 const generateAccessToken = async ({ username, userId }) => {
   console.log(`${username}, ${userId}`)
@@ -14,7 +17,7 @@ const generateAccessToken = async ({ username, userId }) => {
     const jwt = await new jose.SignJWT({
       username,
     })
-      .setProtectedHeader({ alg })
+      .setProtectedHeader({ ...JWT_HEADER })
       .setSubject(userId)
       .setExpirationTime("15min")
       .setAudience("urn:chat-app:client")
@@ -42,7 +45,7 @@ const generateRefreshToken = async ({ sessionId }) => {
       // type: device.type,
       // ip: device.ip,
     })
-      .setProtectedHeader({ alg })
+      .setProtectedHeader({ ...JWT_HEADER })
       .setExpirationTime("5days")
       .setAudience("urn:chat-app:client")
       .setIssuer("urn:chat-app:issuer")

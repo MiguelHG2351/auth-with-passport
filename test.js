@@ -1,6 +1,16 @@
 require('dotenv').config()
-const token = require('./utils')
+const mongoDBInit = require('./database/mongo')
+const Session = require('./database/models/Session')
 
-;(async () => {
-  console.log(await token.signJWT('miguel2351', '2321312bsfdf'))
+mongoDBInit()
+  .then(() => console.log("Database is connected"))
+  .catch((err) => console.error(err));
+
+(async () => {
+  const count = await Session.countDocuments({
+    userId: '63fcdec9beff0678eafa2f75',
+    // userId: user._id,
+  });
+
+  console.log(count)
 })()

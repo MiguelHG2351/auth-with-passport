@@ -1,36 +1,37 @@
-const passport = require("passport");
 const GitHubStrategy = require("passport-github2");
 const axios = require('axios').default
 
-passport.use(
-  new GitHubStrategy(
-    {
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${process.env["CALLBACK_URL"]}auth/github/callback`,
-      passReqToCallback: true,
-    },
-    function (req, accessToken, refreshToken, profile, done) {
-      // console.log(profile)
-      axios.get('https://api.github.com/user/emails', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-          "Access-Control-Allow-Origin": "*"
-        }
-      }).then(data => {
-        const email = data.data.find(email => email.primary)
-        // console.log('Get data')
-        // console.log(data)
-        done(null, {
-          profile: profile._json,
-          email: email
+module.exports = function init(passport) {
+  passport.use(
+    new GitHubStrategy(
+      {
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        callbackURL: `${process.env["CALLBACK_URL"]}auth/github/callback`,
+        passReqToCallback: true,
+      },
+      function (req, accessToken, refreshToken, profile, done) {
+        // console.log(profile)
+        axios.get('https://api.github.com/user/emails', {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            "Access-Control-Allow-Origin": "*"
+          }
+        }).then(data => {
+          const email = data.data.find(email => email.primary)
+          // console.log('Get data')
+          // console.log(data)
+          done(null, {
+            profile: profile._json,
+            email: email
+          })
         })
-      })
-    }
+      }
+    )
   )
-)
+}
 // ;Google
 // profile.id
 // profile.provider

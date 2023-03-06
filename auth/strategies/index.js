@@ -9,6 +9,8 @@
 //   done(null, user);
 // });
 
-require("./google");
-require("./github");
-require("./local");
+module.exports = function init(passport) {
+  require("./google")(passport);
+  require("./github")(passport);
+  require("./local")(passport);
+}

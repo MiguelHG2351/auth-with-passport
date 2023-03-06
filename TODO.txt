@@ -1,0 +1,3 @@
+TODO: diferent response when user is not logged in
+TODO: Send error when user exceeds the limit of sessions
+TODO: create a new session using the refresh token

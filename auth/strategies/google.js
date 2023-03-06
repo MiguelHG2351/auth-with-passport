@@ -1,29 +1,30 @@
-const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth2");
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env["GOOGLE_CLIENT_ID"],
-      clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
-      callbackURL: `${process.env["CALLBACK_URL"]}auth/google/callback`,
-      // passReqToCallback: true,
-    },
-    function verify(accessToken, refreshToken, profile, done) {
-      // console.log(profile);
-      // console.log('Google Strategies');
-      done(null, {
-        name: profile.displayName,
-        username: profile.email.split('@')[0],
-        image: profile._json.picture,
-        provider: profile.provider,
-        email: profile.email,
-        accessToken,
-        refreshToken
-      });
-    }
-  )
-);
+module.exports = function init(passport) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env["GOOGLE_CLIENT_ID"],
+        clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
+        callbackURL: `${process.env["CALLBACK_URL"]}auth/google/callback`,
+        // passReqToCallback: true,
+      },
+      function verify(accessToken, refreshToken, profile, done) {
+        // console.log(profile);
+        // console.log('Google Strategies');
+        done(null, {
+          name: profile.displayName,
+          username: profile.email.split("@")[0],
+          image: profile._json.picture,
+          provider: profile.provider,
+          email: profile.email,
+          accessToken,
+          refreshToken,
+        });
+      }
+    )
+  );
+};
 
 // module.exports = auth;
 // ;Google

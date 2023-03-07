@@ -34,10 +34,6 @@ router.post("/local", (req, res, next) => {
     // 3. El usuario tiene mas de 3 sesiones activas
     if (err) return res.json(err);
     
-    console.log('Options logger')
-    console.log(user)
-    console.log(options)
-    console.log(!user && options.errorType !== "many-sessions")
     if (!user && options.errorType !== "many-sessions") {
       return res.redirect(
         `/auth/error?message=${options.message}&errorType=${options.errorType}`

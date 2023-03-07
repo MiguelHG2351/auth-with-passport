@@ -21,8 +21,6 @@ module.exports = function init(passport) {
           }
         }).then(data => {
           const email = data.data.find(email => email.primary)
-          // console.log('Get data')
-          // console.log(data)
           done(null, {
             profile: profile._json,
             email: email

@@ -25,16 +25,13 @@ function init(passport) {
               message: "Incorrect username or password.",
             });
           }
-          console.log("Before compare password");
-          console.log(typeof user.verifyPassword);
+
           if (!user.verifyPassword(password)) {
-            console.log("inside compare password");
             return done(null, false, {
               errorType: "user-password",
               message: "Incorrect username or password.",
             });
           }
-          console.log("After compare password");
 
           const beforeSessions = await Session.countDocuments({
             userId: user._id,
@@ -43,7 +40,7 @@ function init(passport) {
             return done(null, false, {
               errorType: "error-sessions",
               message:
-                "You have 4 sessions more 1 session from this device, please logout from other devices",
+                "You have 4 sessions more 1 session from this device, please logout from other devices or if the problem persists contact the administrator",
             });
           }
 
@@ -56,7 +53,6 @@ function init(passport) {
             ip: req.socket.remoteAddress,
           });
           if (beforeSessions === 4) {
-            console.log("beforeSessions === 4");
             return done(null, false, {
               errorType: "many-sessions",
               message:
@@ -87,8 +83,6 @@ function init(passport) {
             }),
           });
         } catch (err) {
-          console.log("Error is:");
-          console.log(err);
           return done(err);
         }
       }

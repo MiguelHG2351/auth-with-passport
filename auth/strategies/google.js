@@ -10,8 +10,6 @@ module.exports = function init(passport) {
         // passReqToCallback: true,
       },
       function verify(accessToken, refreshToken, profile, done) {
-        // console.log(profile);
-        // console.log('Google Strategies');
         done(null, {
           name: profile.displayName,
           username: profile.email.split("@")[0],

@@ -16,7 +16,6 @@ const generateAccessToken = async ({
   email,
   restrictedSession,
 }) => {
-  console.log(`${username}`);
   if (!username) {
     return Promise.reject("username or userId is not defined");
   }

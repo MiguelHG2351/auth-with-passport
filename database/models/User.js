@@ -50,8 +50,6 @@ UserSchema.methods.createPassword = async function (password) {
 };
 
 UserSchema.methods.verifyPassword = function (password) {
-  console.log("Inside verifyPassword");
-  console.log(this.password, password);
   return bcrypt.compareSync(password, this.password);
 };
 

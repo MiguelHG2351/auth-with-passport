@@ -38,7 +38,12 @@ const verifyClientToken = async (token) => {
   }
 }
 
+const config = {
+  isDev: process.env.NODE_ENV !== 'production',
+}
+
 module.exports = {
   signJWT,
-  verifyClientToken
+  verifyClientToken,
+  config
 }

@@ -55,10 +55,13 @@ UserSchema.methods.verifyPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
 
-UserSchema.methods.generateAccessToken = async function ({ username, userId }) {
+UserSchema.methods.generateAccessToken = async function ({ userId, username, email, name, restrictedSession = false}) {
   return await generateAccessToken({
-    username,
     userId,
+    username,
+    name,
+    email,
+    restrictedSession,
   });
 };
 

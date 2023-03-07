@@ -22,9 +22,9 @@ const SessionSchema = new Schema({
     type: String,
     required: true,
   },
-  isValid: {
-    type: Boolean,
-    required: true
+  latestAccess: {
+    type: Date,
+    default: Date.now
   },
 }, {
   timestamps: true

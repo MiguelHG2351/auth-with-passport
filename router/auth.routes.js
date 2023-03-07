@@ -3,14 +3,21 @@ const router = Router();
 const passport = require("passport");
 const UserServices = require("../services/user.services");
 const { createUserDto } = require("../dtos/user.dtos");
+const { config } = require("../utils");
 // const { badRequest } = require("../utils/errors");
 
 const { signJWT } = require("../utils");
 const validateSchema = require("../utils/middleware/validateSchema");
-
 const userModel = new UserServices();
+
 const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
   new Date(Date.now() + 60 * 1000 * 15);
+
+const FIVE_DAYS_IN_MILLISECONDS = () =>
+  new Date(Date.now() + 1000 * 60 * 60 * 24 * 5);
+
+const isDev = config.isDev;
+
 
 router.get("/login", (req, res) => {
   res.send("Hello world");
@@ -18,42 +25,53 @@ router.get("/login", (req, res) => {
 
 // #region local
 router.post("/local", (req, res, next) => {
-  passport.authenticate("local", (err, user, options) => {
+  passport.authenticate("local", { session: false }, (err, user, options = {}) => {
     // Haber, si error no es nulo quiere decir que entro al catch de la funcion
     // Si user es nulo quiere decir que no encontro el usuario
     // Si options no es nulo quiere decir que ocurrio lo siguiente:
     // 1. El usuario no existe
     // 2. La contraseña es incorrecta
     // 3. El usuario tiene mas de 3 sesiones activas
-    console.log("This option:");
-    console.log(options);
-    console.log("This error:");
-    console.log(err);
-    console.log("This user:");
-    console.log(user);
-    if(err) return res.json(err);
-    if (!user) return res.json({message: options.message});
-    // console.log(req.body);
-    // res.end("bla bla");
-    res.cookie("access_token", req.user.accessToken);
-    res.cookie("refresh_token", req.user.refreshToken);
+    if (err) return res.json(err);
+    
+    console.log('Options logger')
+    console.log(user)
+    console.log(options)
+    console.log(!user && options.errorType !== "many-sessions")
+    if (!user && options.errorType !== "many-sessions") {
+      return res.redirect(
+        `/auth/error?message=${options.message}&errorType=${options.errorType}`
+      );
+    }
+
+    const tokens = {
+      accessToken: options.errorType === 'many-sessions' ? options.accessToken : user.accessToken,
+      refreshToken: options.errorType === 'many-sessions' ? options.refreshToken : user.refreshToken,
+    }
+
+    res.cookie("access_token", tokens.accessToken, {
+      httpOnly: true,
+      secure: isDev,
+      expires: FIFTEEN_MINUTES_IN_MILLISECONDS(),
+    });
+    res.cookie("refresh_token", tokens.refreshToken, {
+      httpOnly: true,
+      secure: isDev,
+      expires: FIVE_DAYS_IN_MILLISECONDS(),
+    });
     res.redirect("/client");
   })(req, res, next);
 });
 
-router.get("/error", (req, res, next) => {
-  passport.authenticate("local", function (err, ...data) {
-    console.log(err, data);
-    if (err) {
-      res.json({
-        user: "Error too many sessions",
-      });
-      return;
-    }
-    res.json({
-      data,
-    });
-  })(req, res, next);
+router.get("/error", (req, res) => {
+  const { errorType, message, accessToken, refreshToken } = req.query;
+  // if (errorType === "user-password" || errorType === "error-sessions") {
+  //   // si el origen es /auth/error lee el error
+  //   return res.redirect(`/auth/signIn?error=${message}`);
+  // }
+  // return res.redirect(`/auth/session?error=${message}`);
+  res.json({ errorType, message, accessToken, refreshToken })
+  // res.render('error', { message, errorType })
 });
 
 router.get("/local", (req, res) => {

@@ -1,3 +1,8 @@
-TODO: diferent response when user is not logged in
-TODO: Send error when user exceeds the limit of sessions
+TODO: Know if access_token error is a 401 or 403
 TODO: create a new session using the refresh token
+TODO: Validate before create a new session if the refresh token is valid
+TODO: Validate before create a new session that the refresh token is not expired
+TODO: Validate before create a new session that the refresh token is not revoked
+TODO: Validate before create a new session that the user no have many sessions
+TODO: Create login validate middleware
+TODO: When refresh token is being used, update info in access token

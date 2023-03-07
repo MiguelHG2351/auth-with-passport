@@ -1,21 +1,32 @@
 const jose = require("jose");
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_TOKEN);
-const JWT_REFRESH_TOKEN = new TextEncoder().encode(process.env.JWT_REFRESH_TOKEN);
+const JWT_REFRESH_TOKEN = new TextEncoder().encode(
+  process.env.JWT_REFRESH_TOKEN
+);
 const JWT_HEADER = {
   alg: "HS256",
   typ: "JWT",
-}
+};
 
-const generateAccessToken = async ({ username, userId }) => {
-  console.log(`${username}, ${userId}`)
-  if (!username || !userId) {
+const generateAccessToken = async ({
+  userId,
+  username,
+  name,
+  email,
+  restrictedSession,
+}) => {
+  console.log(`${username}`);
+  if (!username) {
     return Promise.reject("username or userId is not defined");
   }
 
   try {
     const jwt = await new jose.SignJWT({
       username,
+      name,
+      email,
+      restrictedSession,
     })
       .setProtectedHeader({ ...JWT_HEADER })
       .setSubject(userId)
@@ -39,11 +50,6 @@ const generateRefreshToken = async ({ sessionId }) => {
   try {
     const jwt = await new jose.SignJWT({
       sessionId,
-      // name: device.userAgent,
-      // version: device.version,
-      // os: device.os,
-      // type: device.type,
-      // ip: device.ip,
     })
       .setProtectedHeader({ ...JWT_HEADER })
       .setExpirationTime("5days")
@@ -61,4 +67,4 @@ const generateRefreshToken = async ({ sessionId }) => {
 module.exports = {
   generateRefreshToken,
   generateAccessToken,
-}
+};

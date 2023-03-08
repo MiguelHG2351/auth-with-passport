@@ -1,7 +1,10 @@
 const Router = require('express')
 const router = Router()
 
-router.get('/', (req, res) => {
+// middlewares
+const isAuthenticated = require('../utils/middleware/isAuthenticated')
+
+router.get('/', isAuthenticated, (req, res) => {
     console.log('Cookies')
     console.log(req.cookies)
     

@@ -30,7 +30,7 @@ const verifyClientToken = async (token) => {
   try {
     const { payload } = await jose.jwtVerify(token, secret, {
       issuer: 'urn:chat-app:client',
-      audience: 'urn:platzi:issuer'
+      audience: 'urn:chat-app:issuer'
     })
     return Promise.resolve(payload)
   } catch (err) {

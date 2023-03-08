@@ -6,3 +6,4 @@ TODO: Validate before create a new session that the refresh token is not revoked
 TODO: Validate before create a new session that the user no have many sessions
 TODO: Create login validate middleware
 TODO: When refresh token is being used, update info in access token
+TODO: Add userId to session token

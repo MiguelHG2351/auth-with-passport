@@ -63,7 +63,33 @@ const generateRefreshToken = async ({ sessionId }) => {
   }
 };
 
+async function decodeAccessToken(token) {
+  try {
+    const decoded = await jose.jwtVerify(token, JWT_SECRET, {
+      issuer: "urn:chat-app:issuer",
+      audience: "urn:chat-app:client",
+    });
+    return decoded;
+  } catch (err) {
+    return Promise.reject(err);
+  }
+}
+
+async function decodeRefreshToken(token) {
+  try {
+    const decoded = await jose.jwtVerify(token, JWT_REFRESH_TOKEN, {
+      issuer: "urn:chat-app:issuer",
+      audience: "urn:chat-app:client",
+    });
+    return decoded;
+  } catch (err) {
+    return Promise.reject(err);
+  }
+}
+
 module.exports = {
   generateRefreshToken,
   generateAccessToken,
+  decodeAccessToken,
+  decodeRefreshToken
 };

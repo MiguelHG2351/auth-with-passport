@@ -1,0 +1,2 @@
+NAME                      IMAGE               COMMAND                  SERVICE             CREATED             STATUS              PORTS
+auth-with-passport-db-1   mongo               "docker-entrypoint.s…"   db                  8 minutes ago       Up 8 minutes        27017/tcp, 0.0.0.0:27017->27018/tcp, :::27017->27018/tcp

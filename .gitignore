@@ -110,6 +110,9 @@ dist
 # Docusaurus cache and generated files
 .docusaurus
 
+# Docker files and generated files
+mongo_data/
+
 # Serverless directories
 .serverless/
 

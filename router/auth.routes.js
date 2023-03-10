@@ -32,6 +32,8 @@ router.post("/local", (req, res, next) => {
     // 1. El usuario no existe
     // 2. La contraseña es incorrecta
     // 3. El usuario tiene mas de 3 sesiones activas
+    console.log('auth/local');
+    console.log(err);
     if (err) return res.json(err);
     
     if (!user && options.errorType !== "many-sessions") {

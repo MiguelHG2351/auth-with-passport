@@ -32,8 +32,6 @@ router.post("/local", (req, res, next) => {
     // 1. El usuario no existe
     // 2. La contraseña es incorrecta
     // 3. El usuario tiene mas de 3 sesiones activas
-    console.log('auth/local');
-    console.log(err);
     if (err) return res.json(err);
     
     if (!user && options.errorType !== "many-sessions") {
@@ -62,13 +60,13 @@ router.post("/local", (req, res, next) => {
 });
 
 router.get("/error", (req, res) => {
-  const { errorType, message, accessToken, refreshToken } = req.query;
+  const { errorType, message } = req.query;
   // if (errorType === "user-password" || errorType === "error-sessions") {
   //   // si el origen es /auth/error lee el error
   //   return res.redirect(`/auth/signIn?error=${message}`);
   // }
   // return res.redirect(`/auth/session?error=${message}`);
-  res.json({ errorType, message, accessToken, refreshToken })
+  res.json({ errorType, message })
   // res.render('error', { message, errorType })
 });
 
@@ -138,7 +136,6 @@ router.get(
     session: false,
   }),
   (req, res) => {
-    // console.log(req.user);
     res.redirect("/client");
   }
 );
@@ -153,7 +150,6 @@ router.get("/github/success", (req, res) => {
 // Esta ruta puede ser una donde ingresen los campos faltantes
 // que google, facebook u otro proveedor no proporciona :D
 // router.get("/google/success", (req, res) => {
-//   console.log(req.user);
 //   res.json({
 //     hello: "World",
 //   });

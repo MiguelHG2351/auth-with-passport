@@ -11,7 +11,6 @@ module.exports = function init(passport) {
         passReqToCallback: true,
       },
       function (req, accessToken, refreshToken, profile, done) {
-        // console.log(profile)
         axios.get('https://api.github.com/user/emails', {
           headers: {
             'Authorization': `Bearer ${accessToken}`,

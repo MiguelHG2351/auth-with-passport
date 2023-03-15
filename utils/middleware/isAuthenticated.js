@@ -3,6 +3,7 @@ const {
   decodeAccessToken,
   decodeRefreshToken,
   generateAccessToken,
+  generateErrorToken
 } = require("../token");
 const { config } = require("../../utils");
 
@@ -46,16 +47,29 @@ module.exports = async function isAuthenticated(req, res) {
       });
       return next();
     } catch (error) {
+      // El único error importante es el de expired, refactor al regresar xd
+      if(error.code === "ERR_JWT_INVALID") {
+        const errorToken = await generateErrorToken({
+          errorType: "error-sessions",
+          message: "El token de sesión no es válido, por favor inicia sesión nuevamente",
+        })
+        return res.redirect(`/auth/error?error=${errorToken}`)
+      }
+      
+      // error has fields: message, name, code
+      let buff = Buffer.from(refreshToken.split(".")[1], 'base64')
       console.log("This is reason");
       console.log(error);
-      // error has fields: message, name, code
       if (error.code === "ERR_JWT_EXPIRED") {
         // remove session of database
-        let buff = Buffer.from(refreshToken.split(".")[1], 'base64')
         const payload = JSON.parse(buff.toString('ascii'));
         await Session.findByIdAndDelete(payload.sessionId)
+        const errorToken = await generateErrorToken({
+          errorType: "error-sessions",
+          message: "La sesión ha expirado, por favor inicia sesión nuevamente",
+        })
         
-        return res.redirect(`/auth/error?errorType=error-sessions&message=La sesión ha expirado, por favor inicia sesión nuevamente`)
+        return res.redirect(`/auth/error?error=${errorToken}`)
       }
       return res
         .status(401)

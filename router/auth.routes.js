@@ -4,6 +4,9 @@ const passport = require("passport");
 const UserServices = require("../services/user.services");
 const { createUserDto } = require("../dtos/user.dtos");
 const { config } = require("../utils");
+const {
+ decodeErrorToken
+} = require("../utils/token");
 // const { badRequest } = require("../utils/errors");
 
 const { signJWT } = require("../utils");
@@ -59,14 +62,19 @@ router.post("/local", (req, res, next) => {
   })(req, res, next);
 });
 
-router.get("/error", (req, res) => {
-  const { errorType, message } = req.query;
+router.get("/error", async (req, res) => {
+  const { error } = req.query;
+  try {
+    const info = await decodeErrorToken(error);
+    res.json({ ...info })
+  } catch (error) {
+    res.json({ error: 'The error info is invalid' })
+  }
   // if (errorType === "user-password" || errorType === "error-sessions") {
   //   // si el origen es /auth/error lee el error
   //   return res.redirect(`/auth/signIn?error=${message}`);
   // }
   // return res.redirect(`/auth/session?error=${message}`);
-  res.json({ errorType, message })
   // res.render('error', { message, errorType })
 });
 

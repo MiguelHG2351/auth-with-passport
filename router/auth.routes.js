@@ -70,12 +70,6 @@ router.get("/error", async (req, res) => {
   } catch (error) {
     res.json({ error: 'The error info is invalid' })
   }
-  // if (errorType === "user-password" || errorType === "error-sessions") {
-  //   // si el origen es /auth/error lee el error
-  //   return res.redirect(`/auth/signIn?error=${message}`);
-  // }
-  // return res.redirect(`/auth/session?error=${message}`);
-  // res.render('error', { message, errorType })
 });
 
 router.get("/local", (req, res) => {

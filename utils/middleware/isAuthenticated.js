@@ -69,6 +69,11 @@ module.exports = async function isAuthenticated(req, res) {
           message: "La sesión ha expirado, por favor inicia sesión nuevamente",
         })
         
+        res.cookie("refresh_token", "", {
+          httpOnly: true,
+          secure: isDev,
+          expires: new Date(0),
+        });
         return res.redirect(`/auth/error?error=${errorToken}`)
       }
       return res

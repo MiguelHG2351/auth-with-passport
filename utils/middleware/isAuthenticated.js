@@ -12,7 +12,7 @@ const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
 
 const isDev = config.isDev;
 
-module.exports = async function isAuthenticated(req, res) {
+module.exports = async function isAuthenticated(req, res, next) {
   const accessToken = req.cookies.access_token;
   const refreshToken = req.cookies.refresh_token;
 
@@ -57,11 +57,11 @@ module.exports = async function isAuthenticated(req, res) {
       }
       
       // error has fields: message, name, code
-      let buff = Buffer.from(refreshToken.split(".")[1], 'base64')
       console.log("This is reason");
       console.log(error);
       if (error.code === "ERR_JWT_EXPIRED") {
         // remove session of database
+        let buff = Buffer.from(refreshToken.split(".")[1], 'base64')
         const payload = JSON.parse(buff.toString('ascii'));
         await Session.findByIdAndDelete(payload.sessionId)
         const errorToken = await generateErrorToken({
@@ -96,8 +96,4 @@ module.exports = async function isAuthenticated(req, res) {
       message: `Unauthorized ${error.message} please try login again`,
     });
   }
-    // return res.status(401).json({
-    //   message:
-    //     "Unauthorized you need an access token or valid refresh token for access to this information",
-    // });
 };

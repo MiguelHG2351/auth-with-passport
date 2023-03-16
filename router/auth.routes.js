@@ -68,7 +68,7 @@ router.get("/error", async (req, res) => {
     const info = await decodeErrorToken(error);
     res.json({ ...info })
   } catch (error) {
-    res.json({ error: 'The error info is invalid' })
+    res.json({ error: 'The error info error has expired or is invalid' })
   }
 });
 

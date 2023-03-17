@@ -82,6 +82,7 @@ router.get(
   "/google",
   passport.authenticate("google", {
     scope: ["email", "profile"],
+    failureMessage: true
   })
 );
 

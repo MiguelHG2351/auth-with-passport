@@ -33,7 +33,7 @@ const generateAccessToken = async ({
     })
       .setProtectedHeader({ ...JWT_HEADER })
       .setSubject(userId)
-      .setExpirationTime("15min")
+      .setExpirationTime("16min")
       .setAudience("urn:chat-app:client")
       .setIssuer("urn:chat-app:issuer")
       .setIssuedAt()
@@ -67,7 +67,7 @@ const generateRefreshToken = async ({ sessionId }) => {
       sessionId,
     })
       .setProtectedHeader({ ...JWT_HEADER })
-      .setExpirationTime("5days")
+      .setExpirationTime("6days")
       .setAudience("urn:chat-app:client")
       .setIssuer("urn:chat-app:issuer")
       .setIssuedAt()

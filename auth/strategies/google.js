@@ -1,4 +1,4 @@
-const GoogleStrategy = require("passport-google-oauth2");
+const GoogleStrategy = require("passport-google-oauth2").Strategy;
 
 module.exports = function init(passport) {
   passport.use(
@@ -7,9 +7,13 @@ module.exports = function init(passport) {
         clientID: process.env["GOOGLE_CLIENT_ID"],
         clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
         callbackURL: `${process.env["CALLBACK_URL"]}auth/google/callback`,
-        // passReqToCallback: true,
+        passReqToCallback: true,
       },
-      function verify(accessToken, refreshToken, profile, done) {
+      function verify(_, accessToken, refreshToken, profile, done) {
+        console.log('google access and refresh token')
+        console.log(accessToken)
+        console.log(refreshToken)
+        
         done(null, {
           name: profile.displayName,
           username: profile.email.split("@")[0],
@@ -23,6 +27,9 @@ module.exports = function init(passport) {
     )
   );
 };
+
+// https://www.googleapis.com/oauth2/v3/tokeninfo?
+// https://oauth2.googleapis.com/tokeninfo
 
 // module.exports = auth;
 // ;Google

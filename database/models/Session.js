@@ -6,6 +6,10 @@ const SessionSchema = new Schema({
     ref: 'User',
     required: true,
   },
+  token: {
+    type: String,
+    required: true,
+  },
   browser: {
     type: String,
     required: true,

@@ -2,16 +2,16 @@ const Router = require("express");
 const router = Router();
 const passport = require("passport");
 const UserServices = require("../services/user.services");
+const Session = require('../database/models/Session')
 const { createUserDto } = require("../dtos/user.dtos");
 const { config } = require("../utils");
-const {
- decodeErrorToken
-} = require("../utils/token");
+const { decodeErrorToken } = require("../utils/token");
 // const { badRequest } = require("../utils/errors");
 
 const { signJWT } = require("../utils");
 const validateSchema = require("../utils/middleware/validateSchema");
-const userModel = new UserServices();
+
+const userServices = new UserServices();
 
 const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
   new Date(Date.now() + 60 * 1000 * 15);
@@ -21,54 +21,63 @@ const FIVE_DAYS_IN_MILLISECONDS = () =>
 
 const isDev = config.isDev;
 
-
 router.get("/login", (req, res) => {
   res.send("Hello world");
 });
 
 // #region local
 router.post("/local", (req, res, next) => {
-  passport.authenticate("local", { session: false }, (err, user, options = {}) => {
-    // Haber, si error no es nulo quiere decir que entro al catch de la funcion
-    // Si user es nulo quiere decir que no encontro el usuario
-    // Si options no es nulo quiere decir que ocurrio lo siguiente:
-    // 1. El usuario no existe
-    // 2. La contraseña es incorrecta
-    // 3. El usuario tiene mas de 3 sesiones activas
-    if (err) return res.json(err);
-    
-    if (!user && options.errorType !== "many-sessions") {
-      return res.redirect(
-        `/auth/error?message=${options.message}&errorType=${options.errorType}`
-      );
-    }
+  passport.authenticate(
+    "local",
+    { session: false },
+    (err, user, options = {}) => {
+      // Haber, si error no es nulo quiere decir que entro al catch de la funcion
+      // Si user es nulo quiere decir que no encontro el usuario
+      // Si options no es nulo quiere decir que ocurrio lo siguiente:
+      // 1. El usuario no existe
+      // 2. La contraseña es incorrecta
+      // 3. El usuario tiene mas de 3 sesiones activas
+      if (err) return res.json(err);
 
-    const tokens = {
-      accessToken: options.errorType === 'many-sessions' ? options.accessToken : user.accessToken,
-      refreshToken: options.errorType === 'many-sessions' ? options.refreshToken : user.refreshToken,
-    }
+      if (!user && options.errorType !== "many-sessions") {
+        return res.redirect(
+          `/auth/error?message=${options.message}&errorType=${options.errorType}`
+        );
+      }
 
-    res.cookie("access_token", tokens.accessToken, {
-      httpOnly: true,
-      secure: isDev,
-      expires: FIFTEEN_MINUTES_IN_MILLISECONDS(),
-    });
-    res.cookie("refresh_token", tokens.refreshToken, {
-      httpOnly: true,
-      secure: isDev,
-      expires: FIVE_DAYS_IN_MILLISECONDS(),
-    });
-    res.redirect("/client");
-  })(req, res, next);
+      const tokens = {
+        accessToken:
+          options.errorType === "many-sessions"
+            ? options.accessToken
+            : user.accessToken,
+        refreshToken:
+          options.errorType === "many-sessions"
+            ? options.refreshToken
+            : user.refreshToken,
+      };
+
+      res.cookie("access_token", tokens.accessToken, {
+        httpOnly: true,
+        secure: isDev,
+        expires: FIFTEEN_MINUTES_IN_MILLISECONDS(),
+      });
+      res.cookie("refresh_token", tokens.refreshToken, {
+        httpOnly: true,
+        secure: isDev,
+        expires: FIVE_DAYS_IN_MILLISECONDS(),
+      });
+      res.redirect("/client");
+    }
+  )(req, res, next);
 });
 
 router.get("/error", async (req, res) => {
   const { error } = req.query;
   try {
     const info = await decodeErrorToken(error);
-    res.json({ ...info })
+    res.json({ ...info });
   } catch (error) {
-    res.json({ error: 'The error info error has expired or is invalid' })
+    res.json({ error: "The error info error has expired or is invalid" });
   }
 });
 
@@ -77,28 +86,28 @@ router.get("/local", (req, res) => {
 });
 // #endregion
 
-// #region google
-router.get(
-  "/google",
+/* #region google */
+router.get("/google", (req, res, next) => {
+  
+
   passport.authenticate("google", {
     scope: ["email", "profile"],
-    failureMessage: true
-  })
-);
+    accessType: "offline",
+    failureMessage: true,
+  })(req, res, next);
+});
 
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     failureRedirect: "/auth/google",
     session: false,
-  }),
-  validateSchema(createUserDto, "user"),
-  async (req, res) => {
+  }, async (err, user,options = {}) => {
     try {
       const { username, name, email, image, provider } = req.user;
-      let getUser = await userModel.findUser({ username }, { lean: true });
+      let getUser = await userServices.findUser({ username }, { lean: true });
       if (!getUser) {
-        getUser = await userModel.createUser({
+        getUser = await userServices.createUser({
           username,
           name,
           email,
@@ -119,9 +128,9 @@ router.get(
       console.error(err);
       res.redirect("/client");
     }
-  }
+  }),
 );
-// #endregion
+/* #endregion */
 
 // #region github
 router.get(
@@ -166,3 +175,9 @@ router.get("/logout", (req, res, next) => {
 });
 
 module.exports = router;
+
+// User -> account
+// User -> Sessions
+
+// Buscar la cookie con el access token
+// Agregar el campo refresh token a la session

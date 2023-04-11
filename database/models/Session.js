@@ -31,7 +31,10 @@ const SessionSchema = new Schema({
     default: Date.now
   },
 }, {
-  timestamps: true
+  timestamps: {
+    createdAt: true,
+    updatedAt: false,
+  },
 })
 
 module.exports = model('Session', SessionSchema)

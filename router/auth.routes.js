@@ -2,16 +2,20 @@ const Router = require("express");
 const router = Router();
 const passport = require("passport");
 const UserServices = require("../services/user.services");
-const Session = require('../database/models/Session')
-const { createUserDto } = require("../dtos/user.dtos");
-const { config } = require("../utils");
+const SessionServices = require("../services/session.services");
 const { decodeErrorToken } = require("../utils/token");
+
+// utils
+const { config } = require("../utils");
+const { setCookiesSession } = require("../utils/session");
+
 // const { badRequest } = require("../utils/errors");
 
 const { signJWT } = require("../utils");
 const validateSchema = require("../utils/middleware/validateSchema");
 
 const userServices = new UserServices();
+const sessionServices = new SessionServices();
 
 const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
   new Date(Date.now() + 60 * 1000 * 15);
@@ -86,9 +90,13 @@ router.get("/local", (req, res) => {
 });
 // #endregion
 
-/* #region google */
+// #region google
 router.get("/google", (req, res, next) => {
-  
+  const { refresh_token, access_token } = req.cookies;
+
+  if (refresh_token || access_token) {
+    return res.render("error_already_login");
+  }
 
   passport.authenticate("google", {
     scope: ["email", "profile"],
@@ -99,36 +107,71 @@ router.get("/google", (req, res, next) => {
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "/auth/google",
-    session: false,
-  }, async (err, user,options = {}) => {
-    try {
-      const { username, name, email, image, provider } = req.user;
-      let getUser = await userServices.findUser({ username }, { lean: true });
-      if (!getUser) {
-        getUser = await userServices.createUser({
-          username,
+  passport.authenticate(
+    "google",
+    {
+      failureRedirect: "/auth/google",
+      session: false,
+    },
+    async (err, user, options = {}) => {
+      console.log(err);
+      console.log(user);
+      console.log(options);
+      try {
+        const {
           name,
-          email,
+          username,
           image,
           provider,
+          email,
+          accessToken,
+          refreshToken,
+        } = user;
+
+        let getUser = await userServices.findUser({ username }, { lean: true });
+
+        if (!getUser) {
+          getUser = await userServices.createUser({
+            username,
+            name,
+            email,
+            image,
+            provider,
+          });
+        }
+
+        const {
+          errorType,
+          message,
+          restrictedSession,
+          accessToken: _accessToken,
+          sid,
+          refreshToken: _refreshToken,
+        } = await sessionServices.createSession({
+          accessToken,
+          refreshToken,
+          username,
         });
+
+        if(!getUser && errorType !== "many-sessions") {
+          
+        }
+
+        // set cookies and session to the database
+        setCookiesSession({
+          res,
+          accessToken: _accessToken,
+          refreshToken: _refreshToken,
+          sid,
+        });
+
+        res.redirect("/client");
+      } catch (err) {
+        console.error(err);
+        res.redirect("/client");
       }
-
-      const generateToken = await signJWT(username, getUser._id);
-
-      res.cookie("token_auth", generateToken, {
-        httpOnly: true,
-        expires: FIFTEEN_MINUTES_IN_MILLISECONDS(),
-        secure: true,
-      });
-      res.redirect("/client");
-    } catch (err) {
-      console.error(err);
-      res.redirect("/client");
     }
-  }),
+  )
 );
 /* #endregion */
 
@@ -168,6 +211,8 @@ router.get("/github/success", (req, res) => {
 // });
 
 router.get("/logout", (req, res, next) => {
+  // eliminar las sessiones del usuario en la base de datos
+
   req.logout((err) => {
     if (err) return next(err);
     res.redirect("/auth/login");

@@ -54,12 +54,46 @@ app.get("/", (req, res) => {
   res.send("Hello world!");
 });
 
+// #region testing
+app.get("/testing", (req, res) => {
+  const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
+    new Date(Date.now() + 60 * 1000 * 15);
+
+  const FIVE_DAYS_IN_MILLISECONDS = () =>
+    new Date(Date.now() + 1000 * 60 * 60 * 24 * 5);
+  const ACCESS_TOKEN =
+  ''
+  const REFRESH_TOKEN =
+  ''
+
+  res.cookie("access_token", ACCESS_TOKEN, {
+    httpOnly: true,
+    secure: true,
+    expires: FIFTEEN_MINUTES_IN_MILLISECONDS(),
+  });
+  res.cookie("refresh_token", REFRESH_TOKEN, {
+    httpOnly: true,
+    secure: true,
+    expires: FIVE_DAYS_IN_MILLISECONDS(),
+  });
+
+  res.send("Hello world!");
+});
+
+app.get("/log_cookies", (req, res) => {
+  console.log(req.cookies);
+  console.log(req.cookies.refresh_token);
+
+  res.send("Hello world!");
+})
+
+// #endregion
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   res.status(404).json({
     message: "Not found",
-  })
-
+  });
 });
 
 module.exports = app;

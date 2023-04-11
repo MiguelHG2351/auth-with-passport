@@ -11,8 +11,8 @@ module.exports = function init(passport) {
       },
       function verify(_, accessToken, refreshToken, profile, done) {
         console.log('google access and refresh token')
-        console.log(accessToken)
-        console.log(refreshToken)
+        // console.log(accessToken)
+        // console.log(refreshToken)
         
         done(null, {
           name: profile.displayName,

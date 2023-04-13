@@ -62,9 +62,7 @@ app.get("/testing", (req, res) => {
   const FIVE_DAYS_IN_MILLISECONDS = () =>
     new Date(Date.now() + 1000 * 60 * 60 * 24 * 5);
   const ACCESS_TOKEN =
-  ''
   const REFRESH_TOKEN =
-  ''
 
   res.cookie("access_token", ACCESS_TOKEN, {
     httpOnly: true,

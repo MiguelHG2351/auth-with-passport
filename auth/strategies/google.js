@@ -1,4 +1,9 @@
 const GoogleStrategy = require("passport-google-oauth2").Strategy;
+const UserServices = require("../../services/user.services");
+const SessionServices = require("../../services/session.services");
+
+const userServices = new UserServices();
+const sessionServices = new SessionServices();
 
 module.exports = function init(passport) {
   passport.use(
@@ -9,20 +14,63 @@ module.exports = function init(passport) {
         callbackURL: `${process.env["CALLBACK_URL"]}auth/google/callback`,
         passReqToCallback: true,
       },
-      function verify(_, accessToken, refreshToken, profile, done) {
-        console.log('google access and refresh token')
-        // console.log(accessToken)
-        // console.log(refreshToken)
-        
-        done(null, {
-          name: profile.displayName,
-          username: profile.email.split("@")[0],
-          image: profile._json.picture,
-          provider: profile.provider,
-          email: profile.email,
-          accessToken,
-          refreshToken,
-        });
+      async function verify(req, accessToken, refreshToken, profile, done) {
+        console.log("google access and refresh token");
+
+        try {
+          const name = profile.displayName;
+          const username = profile.email.split("@")[0];
+          const email = profile.email;
+          const image = profile._json.picture;
+          const provider = profile.provider;
+
+          let getUser = await userServices.findUser(
+            { username },
+            { lean: true }
+          );
+
+          if (!getUser) {
+            getUser = await userServices.createUser({
+              username,
+              name,
+              email,
+              image,
+              provider,
+            });
+          }
+
+          const {
+            errorType,
+            message,
+            restrictedSession,
+            accessToken: _accessToken,
+            sid,
+            refreshToken: _refreshToken,
+          } = await sessionServices.createSession({
+            accessToken,
+            refreshToken,
+            username,
+          });
+
+          if (errorType === "error-sessions") {
+            return done(null, false, {
+              message,
+              restrictedSession,
+            });
+          }
+          return done(null, {
+            name: profile.displayName,
+            username: profile.email.split("@")[0],
+            image: profile._json.picture,
+            provider: profile.provider,
+            email: profile.email,
+            accessToken,
+            refreshToken,
+            sid,
+          });
+        } catch (err) {
+          return done(err);
+        }
       }
     )
   );

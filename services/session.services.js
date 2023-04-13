@@ -82,7 +82,7 @@ class SessionServices {
         sid: crypto.randomBytes(16),
       };
     } catch (err) {
-      return done(err);
+      return err
     }
   }
 }

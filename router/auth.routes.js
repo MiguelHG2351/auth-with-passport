@@ -1,21 +1,16 @@
 const Router = require("express");
 const router = Router();
 const passport = require("passport");
-const UserServices = require("../services/user.services");
-const SessionServices = require("../services/session.services");
-const { decodeErrorToken } = require("../utils/token");
 
 // utils
 const { config } = require("../utils");
 const { setCookiesSession } = require("../utils/session");
+const { generateErrorToken, decodeErrorToken } = require("../utils/token");
 
 // const { badRequest } = require("../utils/errors");
 
 const { signJWT } = require("../utils");
 const validateSchema = require("../utils/middleware/validateSchema");
-
-const userServices = new UserServices();
-const sessionServices = new SessionServices();
 
 const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
   new Date(Date.now() + 60 * 1000 * 15);
@@ -34,7 +29,7 @@ router.post("/local", (req, res, next) => {
   passport.authenticate(
     "local",
     { session: false },
-    (err, user, options = {}) => {
+    async (err, user, options = {}) => {
       // Haber, si error no es nulo quiere decir que entro al catch de la funcion
       // Si user es nulo quiere decir que no encontro el usuario
       // Si options no es nulo quiere decir que ocurrio lo siguiente:
@@ -44,9 +39,12 @@ router.post("/local", (req, res, next) => {
       if (err) return res.json(err);
 
       if (!user && options.errorType !== "many-sessions") {
-        return res.redirect(
-          `/auth/error?message=${options.message}&errorType=${options.errorType}`
-        );
+        const errorToken = await generateErrorToken({
+          errorType: "error-sessions",
+          message:
+            "El token de sesión no es válido, por favor inicia sesión nuevamente",
+        });
+        return res.redirect(`/auth/error?error=${errorToken}`);
       }
 
       const tokens = {
@@ -105,74 +103,38 @@ router.get("/google", (req, res, next) => {
   })(req, res, next);
 });
 
-router.get(
-  "/google/callback",
+router.get("/google/callback", (req, res, next) => {
   passport.authenticate(
     "google",
     {
-      failureRedirect: "/auth/google",
+      // failureRedirect: "/auth/google",
+      // successRedirect: "/auth/google/success",
       session: false,
     },
     async (err, user, options = {}) => {
       console.log(err);
       console.log(user);
       console.log(options);
-      try {
-        const {
-          name,
-          username,
-          image,
-          provider,
-          email,
-          accessToken,
-          refreshToken,
-        } = user;
-
-        let getUser = await userServices.findUser({ username }, { lean: true });
-
-        if (!getUser) {
-          getUser = await userServices.createUser({
-            username,
-            name,
-            email,
-            image,
-            provider,
-          });
-        }
-
-        const {
-          errorType,
-          message,
-          restrictedSession,
-          accessToken: _accessToken,
-          sid,
-          refreshToken: _refreshToken,
-        } = await sessionServices.createSession({
-          accessToken,
-          refreshToken,
-          username,
+      if (options.errorType !== "many-sessions") {
+        const errorToken = await generateErrorToken({
+          errorType: "many-sessions",
+          message:
+            "Tienes más de 4 sesiones activas, por favor cierra alguna sesión para poder iniciar sesión nuevamente",
         });
-
-        if(!getUser && errorType !== "many-sessions") {
-          
-        }
-
-        // set cookies and session to the database
-        setCookiesSession({
-          res,
-          accessToken: _accessToken,
-          refreshToken: _refreshToken,
-          sid,
-        });
-
-        res.redirect("/client");
-      } catch (err) {
-        console.error(err);
-        res.redirect("/client");
+        return res.redirect(`/auth/error?error=${errorToken}`);
       }
+      // set cookies and session to the database
+      setCookiesSession({
+        res,
+        accessToken: _accessToken,
+        refreshToken: _refreshToken,
+        sid,
+      });
+      
+      res.redirect('/client')
     }
-  )
-);
+  )(req, res, next);
+});
 /* #endregion */
 
 // #region github

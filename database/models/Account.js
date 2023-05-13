@@ -2,15 +2,24 @@ const { Schema, model } = require("mongoose");
 
 const AccountSchema = new Schema({
   userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  access_token: {
     type: String,
-    required: true
+    required: true,
+  },
+  refresh_token: {
+    type: String,
+    required: true,
   },
   provider: {
     type: String,
-    enum: ["google", "facebook", "github"],
+    enum: ["google", "local", "github"],
     required: true
   },
-  session_state: { // If account is enable
+  account_state: { // If account is enable
     type: String,
     required: true,
     enum: [
@@ -18,9 +27,6 @@ const AccountSchema = new Schema({
       'disable'
     ]
   },
-  user: {
-    type: Schema.Types.ObjectId, ref: 'User'
-  }
 });
 
 module.exports = model('account', AccountSchema)

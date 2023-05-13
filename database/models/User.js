@@ -28,11 +28,6 @@ const UserSchema = new Schema(
       type: String,
       required: false,
     },
-    provider: {
-      type: String,
-      enum: ["google", "facebook", "github"],
-      required: true,
-    },
     image: {
       type: String,
       required: true,

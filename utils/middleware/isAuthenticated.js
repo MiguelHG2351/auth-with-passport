@@ -7,6 +7,8 @@ const {
 } = require("../token");
 const { config } = require("../../utils");
 
+const { ERROR_TYPE } = require("../../services/session.services");
+
 const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
   new Date(Date.now() + 60 * 1000 * 15);
 
@@ -50,7 +52,7 @@ module.exports = async function isAuthenticated(req, res, next) {
       // El único error importante es el de expired, refactor al regresar xd
       if(error.code === "ERR_JWT_INVALID") {
         const errorToken = await generateErrorToken({
-          errorType: "error-sessions",
+          errorType: ERROR_TYPE.ERROR_SESSION,
           message: "El token de sesión no es válido, por favor inicia sesión nuevamente",
         })
         return res.redirect(`/auth/error?error=${errorToken}`)
@@ -65,7 +67,7 @@ module.exports = async function isAuthenticated(req, res, next) {
         const payload = JSON.parse(buff.toString('ascii'));
         await Session.findByIdAndDelete(payload.sessionId)
         const errorToken = await generateErrorToken({
-          errorType: "error-sessions",
+          errorType: ERROR_TYPE.EXPIRED_SESSION,
           message: "La sesión ha expirado, por favor inicia sesión nuevamente",
         })
         
@@ -79,8 +81,13 @@ module.exports = async function isAuthenticated(req, res, next) {
       return res
         .status(401)
         .json({
-          message: `Unauthorized decode:${error?.message ?? error?.reason}`,
+          message: `Unauthorized or Invalid auth token`,
         });
+      // return res
+      //   .status(401)
+      //   .json({
+      //     message: `Unauthorized decode:${error?.message ?? error?.reason}`,
+      //   });
     }
   }
   // try descode token

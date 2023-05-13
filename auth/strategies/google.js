@@ -1,9 +1,12 @@
 const GoogleStrategy = require("passport-google-oauth2").Strategy;
 const UserServices = require("../../services/user.services");
-const SessionServices = require("../../services/session.services");
+const { SessionServices } = require("../../services/session.services");
+const AccountServices = require("../../services/account.services");
+const { detect } = require("detect-browser");
 
 const userServices = new UserServices();
 const sessionServices = new SessionServices();
+const accountServices = new AccountServices();
 
 module.exports = function init(passport) {
   passport.use(
@@ -15,6 +18,7 @@ module.exports = function init(passport) {
         passReqToCallback: true,
       },
       async function verify(req, accessToken, refreshToken, profile, done) {
+        const device = detect(req.headers["user-agent"]);
         console.log("google access and refresh token");
 
         try {
@@ -35,12 +39,19 @@ module.exports = function init(passport) {
               name,
               email,
               image,
-              provider,
             });
+            await accountServices.createAccount({
+              provider,
+              userId: getUser._id,
+              accountState: "enable",
+              accessToken,
+              refreshToken
+            })
           }
 
+          console.log('Access: ' + accessToken)
           const {
-            errorType,
+            error: errorInfo,
             message,
             restrictedSession,
             accessToken: _accessToken,
@@ -50,10 +61,17 @@ module.exports = function init(passport) {
             accessToken,
             refreshToken,
             username,
+            device: {
+              ...device,
+              ip: req.socket.remoteAddress
+            },
           });
+          console.log('Error Type ')
+          console.log(errorInfo, message, restrictedSession, _accessToken, sid, _refreshToken)
 
-          if (errorType === "error-sessions") {
+          if (errorInfo) {
             return done(null, false, {
+              errorInfo,
               message,
               restrictedSession,
             });
@@ -64,8 +82,8 @@ module.exports = function init(passport) {
             image: profile._json.picture,
             provider: profile.provider,
             email: profile.email,
-            accessToken,
-            refreshToken,
+            accessToken: _accessToken,
+            refreshToken: _refreshToken,
             sid,
           });
         } catch (err) {

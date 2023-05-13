@@ -5,12 +5,14 @@ const passport = require("passport");
 // utils
 const { config } = require("../utils");
 const { setCookiesSession } = require("../utils/session");
-const { generateErrorToken, decodeErrorToken } = require("../utils/token");
+const { generateErrorToken, decodeAccessToken, decodeRefreshToken, decodeErrorToken } = require("../utils/token");
+
+const { ERROR_TYPE } = require("../services/session.services");
 
 // const { badRequest } = require("../utils/errors");
 
-const { signJWT } = require("../utils");
-const validateSchema = require("../utils/middleware/validateSchema");
+// const { signJWT } = require("../utils");
+// const validateSchema = require("../utils/middleware/validateSchema");
 
 const FIFTEEN_MINUTES_IN_MILLISECONDS = () =>
   new Date(Date.now() + 60 * 1000 * 15);
@@ -49,11 +51,11 @@ router.post("/local", (req, res, next) => {
 
       const tokens = {
         accessToken:
-          options.errorType === "many-sessions"
+          options.errorInfo?.errorType === ERROR_TYPE.MAXIMUN_SESSIONS
             ? options.accessToken
             : user.accessToken,
         refreshToken:
-          options.errorType === "many-sessions"
+          options.errorInfo?.errorType === ERROR_TYPE.MAXIMUN_SESSIONS
             ? options.refreshToken
             : user.refreshToken,
       };
@@ -73,6 +75,12 @@ router.post("/local", (req, res, next) => {
   )(req, res, next);
 });
 
+
+router.get("/local", (req, res) => {
+  res.render("login");
+});
+// #endregion
+
 router.get("/error", async (req, res) => {
   const { error } = req.query;
   try {
@@ -83,17 +91,20 @@ router.get("/error", async (req, res) => {
   }
 });
 
-router.get("/local", (req, res) => {
-  res.render("login");
-});
-// #endregion
-
 // #region google
-router.get("/google", (req, res, next) => {
+router.get("/google", async (req, res, next) => {
   const { refresh_token, access_token } = req.cookies;
 
   if (refresh_token || access_token) {
-    return res.render("error_already_login");
+    try {
+      const accessToken = await decodeAccessToken(refresh_token)
+      const refreshToken = await decodeRefreshToken(access_token)
+      console.log(`/auth/google try ${accessToken} ${refreshToken}`)
+      return res.render("error_already_login");
+    } catch (err) {
+      console.log('/auth/google catch ')
+      console.log(err)
+    }
   }
 
   passport.authenticate("google", {
@@ -112,10 +123,11 @@ router.get("/google/callback", (req, res, next) => {
       session: false,
     },
     async (err, user, options = {}) => {
+      console.log("before TODO");
       console.log(err);
       console.log(user);
       console.log(options);
-      if (options.errorType !== "many-sessions") {
+      if (options.errorInfo?.errorType === "maximun-sessions") {
         const errorToken = await generateErrorToken({
           errorType: "many-sessions",
           message:
@@ -124,14 +136,15 @@ router.get("/google/callback", (req, res, next) => {
         return res.redirect(`/auth/error?error=${errorToken}`);
       }
       // set cookies and session to the database
+      console.log(user.accessToken, user.refreshToken);
       setCookiesSession({
         res,
-        accessToken: _accessToken,
-        refreshToken: _refreshToken,
-        sid,
+        accessToken: user.accessToken,
+        refreshToken: user.refreshToken,
+        sid: user.sid,
       });
-      
-      res.redirect('/client')
+
+      res.redirect("/client");
     }
   )(req, res, next);
 });
@@ -174,7 +187,6 @@ router.get("/github/success", (req, res) => {
 
 router.get("/logout", (req, res, next) => {
   // eliminar las sessiones del usuario en la base de datos
-
   req.logout((err) => {
     if (err) return next(err);
     res.redirect("/auth/login");
